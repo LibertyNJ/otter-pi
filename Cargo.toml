@@ -1,0 +1,16 @@
+[package]
+name = "otter-pi"
+version = "0.1.0"
+authors = ["Nathaniel J. Liberty <nathaniel.liberty@gmail.com>"]
+edition = "2021"
+description = "A robot built on Raspberry Pi."
+readme = "README.md"
+repository = "https://github.com/LibertyNJ/otter-pi"
+license = "MIT"
+keywords = ["electronics", "raspberry-pi", "robotics"]
+categories = ["hardware-support", "science::robotics"]
+publish = false
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
