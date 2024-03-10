@@ -97,7 +97,7 @@ impl TemporaryDirectory {
 
 impl Drop for TemporaryDirectory {
     fn drop(&mut self) {
-        let _ = fs::remove_dir(&self.path);
+        let _ = fs::remove_dir_all(&self.path);
     }
 }
 
@@ -120,6 +120,19 @@ mod tests {
     #[test]
     fn it_should_return_a_path_that_does_not_exist_after_it_goes_out_of_scope() {
         let path = TemporaryDirectory::new().unwrap().get_path().to_owned();
+        assert!(path.try_exists().is_ok_and(|exists| !exists));
+    }
+
+    #[test]
+    fn it_should_return_a_path_that_does_not_exist_after_adding_content_and_it_goes_out_of_scope_()
+    {
+        let path = {
+            let temp_dir = TemporaryDirectory::new().unwrap();
+            let file_path = temp_dir.get_path().join("foo");
+            fs::write(file_path, "bar").unwrap();
+            temp_dir.get_path().to_owned()
+        };
+
         assert!(path.try_exists().is_ok_and(|exists| !exists));
     }
 }
