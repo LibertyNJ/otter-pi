@@ -118,14 +118,13 @@ mod tests {
     }
 
     #[test]
-    fn it_should_return_a_path_that_does_not_exist_after_it_goes_out_of_scope() {
+    fn it_should_return_a_path_that_does_not_exist_after_going_out_of_scope() {
         let path = TemporaryDirectory::new().unwrap().get_path().to_owned();
         assert!(path.try_exists().is_ok_and(|exists| !exists));
     }
 
     #[test]
-    fn it_should_return_a_path_that_does_not_exist_after_adding_content_and_it_goes_out_of_scope_()
-    {
+    fn it_should_return_a_path_that_does_not_exist_after_adding_content_and_going_out_of_scope() {
         let path = {
             let temp_dir = TemporaryDirectory::new().unwrap();
             let file_path = temp_dir.get_path().join("foo");
