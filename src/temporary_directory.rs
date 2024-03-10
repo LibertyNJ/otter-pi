@@ -134,4 +134,11 @@ mod tests {
 
         assert!(path.try_exists().is_ok_and(|exists| !exists));
     }
+
+    #[test]
+    fn it_should_return_a_unique_path_for_each_instance() {
+        let temp_dir_a = TemporaryDirectory::new().unwrap();
+        let temp_dir_b = TemporaryDirectory::new().unwrap();
+        assert_ne!(temp_dir_a.get_path(), temp_dir_b.get_path());
+    }
 }
