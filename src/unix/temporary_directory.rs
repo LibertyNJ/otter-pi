@@ -1,14 +1,10 @@
 //! Abstractions to make managing temporary directories easier.
 
-use std::ffi::{c_char, CString, OsString};
-#[cfg(unix)]
-use std::os::unix::ffi::OsStringExt;
+use std::fs;
+use std::io::Error;
 use std::path::{Path, PathBuf};
-use std::{env, error, fs, io};
 
-extern "C" {
-    fn mkdtemp(template: *mut c_char) -> *mut c_char;
-}
+use super::posix;
 
 /// A secure, uniquely-named temporary directory.
 ///
@@ -18,7 +14,7 @@ extern "C" {
 /// # Examples
 ///
 /// ```
-/// use otter_pi::temporary_directory::TemporaryDirectory;
+/// use otter_pi::unix::temporary_directory::TemporaryDirectory;
 ///
 /// let path = {
 ///     let temp_dir = TemporaryDirectory::new().unwrap();
@@ -36,7 +32,7 @@ pub struct TemporaryDirectory {
 impl TemporaryDirectory {
     /// Securely creates a uniquely-named temporary directory.
     ///
-    /// The path to the underlying temporary directory is based on the system's
+    /// The path to the underlying temporary directory is based on the system’s
     /// temporary directory path composed with a random string.
     ///
     /// # Examples
@@ -44,32 +40,19 @@ impl TemporaryDirectory {
     /// ```
     /// use std::env;
     ///
-    /// use otter_pi::temporary_directory::TemporaryDirectory;
+    /// use otter_pi::unix::temporary_directory::TemporaryDirectory;
     ///
     /// let temp_dir = TemporaryDirectory::new().unwrap();
     /// assert!(temp_dir.get_path().starts_with(env::temp_dir()));
     /// ```
+    ///
     /// # Errors
     ///
-    /// This function will return an error if the internal path template derived
-    /// from the system temporary directory path contains a nul byte, or if it fails
-    /// to create the underlying temporary directory for any reason.
-    #[cfg(unix)]
-    pub fn new() -> Result<Self, Box<dyn error::Error>> {
-        let mut template = env::temp_dir();
-        template.push("XXXXXX");
-        let template = CString::new(template.into_os_string().into_vec())?;
-        let template = template.into_raw();
-        let ptr = unsafe { mkdtemp(template) };
-        let error = io::Error::last_os_error();
-        let path = unsafe { CString::from_raw(template) };
-
-        if ptr.is_null() {
-            Err(error)?
-        } else {
-            let path = PathBuf::from(OsString::from_vec(path.into_bytes()));
-            Ok(Self { path })
-        }
+    /// This function will return an error if it fails to create a temporary
+    /// directory.
+    pub fn new() -> Result<Self, Error> {
+        let path = posix::create_temp_dir()?;
+        Ok(Self { path })
     }
 
     /// Returns the path to the underlying temporary directory.
@@ -82,7 +65,7 @@ impl TemporaryDirectory {
     /// ```
     /// use std::fs;
     ///
-    /// use otter_pi::temporary_directory::TemporaryDirectory;
+    /// use otter_pi::unix::temporary_directory::TemporaryDirectory;
     ///
     /// let temp_dir = TemporaryDirectory::new().unwrap();
     /// let file_path = temp_dir.get_path().join("foo");
@@ -103,6 +86,8 @@ impl Drop for TemporaryDirectory {
 
 #[cfg(test)]
 mod tests {
+    use std::env;
+
     use super::*;
 
     #[test]
