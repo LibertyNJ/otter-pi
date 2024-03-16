@@ -1,3 +1,4 @@
 //! Features available on Unix-like operating systems.
 
-pub mod convert;
+mod convert;
+pub mod posix;

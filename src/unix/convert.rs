@@ -5,7 +5,6 @@ use std::os::unix::ffi::OsStringExt;
 use std::path::PathBuf;
 
 /// Converts a [`CString`] into a [`PathBuf`].
-#[must_use]
 pub fn c_string_to_path_buf(c_string: CString) -> PathBuf {
     PathBuf::from(OsString::from_vec(c_string.into_bytes()))
 }
