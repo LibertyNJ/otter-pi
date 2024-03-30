@@ -18,8 +18,8 @@ use super::posix;
 ///
 /// let path = {
 ///     let temp_dir = TemporaryDirectory::new().unwrap();
-///     assert!(temp_dir.get_path().is_dir());
-///     temp_dir.get_path().to_owned()
+///     assert!(temp_dir.path().is_dir());
+///     temp_dir.path().to_owned()
 /// };
 ///
 /// assert!(path.try_exists().is_ok_and(|exists| !exists));
@@ -43,7 +43,7 @@ impl TemporaryDirectory {
     /// use otter_pi::unix::temporary_directory::TemporaryDirectory;
     ///
     /// let temp_dir = TemporaryDirectory::new().unwrap();
-    /// assert!(temp_dir.get_path().starts_with(env::temp_dir()));
+    /// assert!(temp_dir.path().starts_with(env::temp_dir()));
     /// ```
     ///
     /// # Errors
@@ -68,12 +68,12 @@ impl TemporaryDirectory {
     /// use otter_pi::unix::temporary_directory::TemporaryDirectory;
     ///
     /// let temp_dir = TemporaryDirectory::new().unwrap();
-    /// let file_path = temp_dir.get_path().join("foo");
+    /// let file_path = temp_dir.path().join("foo");
     /// assert!(fs::write(&file_path, "bar").is_ok());
     /// assert!(fs::read_to_string(&file_path).is_ok_and(|content| content == "bar"));
     /// ```
     #[must_use]
-    pub fn get_path(&self) -> &Path {
+    pub fn path(&self) -> &Path {
         &self.path
     }
 }
@@ -93,18 +93,18 @@ mod tests {
     #[test]
     fn it_should_return_a_path_that_begins_with_the_system_temporary_directory() {
         let temp_dir = TemporaryDirectory::new().unwrap();
-        assert!(temp_dir.get_path().starts_with(env::temp_dir()));
+        assert!(temp_dir.path().starts_with(env::temp_dir()));
     }
 
     #[test]
     fn it_should_return_a_path_to_an_accessible_directory() {
         let temp_dir = TemporaryDirectory::new().unwrap();
-        assert!(temp_dir.get_path().is_dir());
+        assert!(temp_dir.path().is_dir());
     }
 
     #[test]
     fn it_should_return_a_path_that_does_not_exist_after_going_out_of_scope() {
-        let path = TemporaryDirectory::new().unwrap().get_path().to_owned();
+        let path = TemporaryDirectory::new().unwrap().path().to_owned();
         assert!(path.try_exists().is_ok_and(|exists| !exists));
     }
 
@@ -112,9 +112,9 @@ mod tests {
     fn it_should_return_a_path_that_does_not_exist_after_adding_content_and_going_out_of_scope() {
         let path = {
             let temp_dir = TemporaryDirectory::new().unwrap();
-            let file_path = temp_dir.get_path().join("foo");
+            let file_path = temp_dir.path().join("foo");
             fs::write(file_path, "bar").unwrap();
-            temp_dir.get_path().to_owned()
+            temp_dir.path().to_owned()
         };
 
         assert!(path.try_exists().is_ok_and(|exists| !exists));
@@ -124,6 +124,6 @@ mod tests {
     fn it_should_return_a_unique_path_for_each_instance() {
         let temp_dir_a = TemporaryDirectory::new().unwrap();
         let temp_dir_b = TemporaryDirectory::new().unwrap();
-        assert_ne!(temp_dir_a.get_path(), temp_dir_b.get_path());
+        assert_ne!(temp_dir_a.path(), temp_dir_b.path());
     }
 }
