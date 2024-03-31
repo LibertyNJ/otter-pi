@@ -47,59 +47,44 @@ mod tests {
     use super::*;
     use crate::unix::temporary_directory::TemporaryDirectory;
 
-    const CONTENTS: &str = "bar";
-    const PATH: &str = "foo";
-
-    mod read {
-        use super::*;
-
-        #[test]
-        fn it_should_read_from_an_attribute() {
-            let sysfs_dir = mock_sysfs_dir();
-            let absolute_path = sysfs_dir.path().join(PATH);
-            fs::write(absolute_path, CONTENTS)
-                .expect("parent directory should exist and be writable");
-            assert!(read(PATH)
-                .is_ok_and(|attribute_contents| attribute_contents == CONTENTS.as_bytes()));
-        }
+    #[test]
+    fn it_should_read_from_an_attribute() {
+        let _sysfs_dir = mock_sysfs_dir();
+        assert!(read("class/pwm/pwmchip0/npwm").is_ok_and(|contents| contents == NPWM.as_bytes()));
     }
 
-    mod read_to_string {
-        use super::*;
-
-        #[test]
-        fn it_should_read_from_an_attribute() {
-            let sysfs_dir = mock_sysfs_dir();
-            let absolute_path = sysfs_dir.path().join(PATH);
-            fs::write(absolute_path, CONTENTS)
-                .expect("parent directory should exist and be writable");
-            assert!(
-                read_to_string(PATH).is_ok_and(|attribute_contents| attribute_contents == CONTENTS)
-            );
-        }
+    #[test]
+    fn it_should_read_from_an_attribute_to_a_string() {
+        let _sysfs_dir = mock_sysfs_dir();
+        assert!(read_to_string("class/pwm/pwmchip0/npwm").is_ok_and(|contents| contents == NPWM));
     }
 
-    mod write {
-        use super::*;
-
-        #[test]
-        fn it_should_write_to_an_attribute() {
-            let sysfs_dir = mock_sysfs_dir();
-            write(PATH, CONTENTS).expect("attribute should be writable");
-            let absolute_path = sysfs_dir.path().join(PATH);
-            assert!(fs::read_to_string(absolute_path)
-                .is_ok_and(|attribute_contents| attribute_contents == CONTENTS));
-        }
+    #[test]
+    fn it_should_write_to_an_attribute() {
+        let sysfs_dir = mock_sysfs_dir();
+        let channel = "0";
+        write("class/pwm/pwmchip0/export", channel)
+            .expect("attribute should exist and be writable");
+        let path = sysfs_dir.path().join("class/pwm/pwmchip0/export");
+        assert!(fs::read_to_string(path).is_ok_and(|contents| contents == channel));
     }
 
     fn mock_sysfs_dir() -> TemporaryDirectory {
-        let temp_dir = TemporaryDirectory::new().expect("should succeed");
+        let sysfs_dir = TemporaryDirectory::new().expect("should succeed");
 
         SYSFS_ROOT_DIR.with(|cell| {
-            cell.set(temp_dir.path().into())
-                .expect("cell should be empty");
+            cell.set(sysfs_dir.path().into())
+                .expect("`SYSFS_ROOT_DIR` should not be set");
         });
 
-        temp_dir
+        let pwm_controller_path = sysfs_dir.path().join("class/pwm/pwmchip0");
+        fs::create_dir_all(&pwm_controller_path).expect("parent directory should be writable");
+        let export_path = pwm_controller_path.join("export");
+        fs::write(export_path, "").expect("parent directory should exist and be writable");
+        let npwm_path = pwm_controller_path.join("npwm");
+        fs::write(npwm_path, NPWM).expect("parent directory should exist and be writable");
+        sysfs_dir
     }
+
+    const NPWM: &str = "1";
 }
