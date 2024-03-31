@@ -2,25 +2,26 @@
 
 #[cfg(test)]
 use std::cell::OnceCell;
+use std::fs;
+use std::io::Result;
 use std::path::Path;
 #[cfg(test)]
 use std::path::PathBuf;
-use std::{fs, io};
 
 /// Read from a kernel attribute.
-pub fn read(path: impl AsRef<Path>) -> io::Result<Vec<u8>> {
+pub fn read(path: impl AsRef<Path>) -> Result<Vec<u8>> {
     let path = get_sysfs_path(path);
     fs::read(path)
 }
 
 /// Read from a kernel attribute into a [`String`].
-pub fn read_to_string(path: impl AsRef<Path>) -> io::Result<String> {
+pub fn read_to_string(path: impl AsRef<Path>) -> Result<String> {
     let path = get_sysfs_path(path);
     fs::read_to_string(path)
 }
 
 /// Write to a kernel attribute.
-pub fn write(path: impl AsRef<Path>, contents: impl AsRef<[u8]>) -> io::Result<()> {
+pub fn write(path: impl AsRef<Path>, contents: impl AsRef<[u8]>) -> Result<()> {
     let path = get_sysfs_path(path);
     fs::write(path, contents)
 }
