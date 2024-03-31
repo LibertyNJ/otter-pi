@@ -56,10 +56,10 @@ mod tests {
         #[test]
         fn it_should_read_from_an_attribute() {
             let sysfs_dir = mock_sysfs_dir();
-            let attribute_path = sysfs_dir.path().join(PATH);
-            fs::write(&attribute_path, CONTENTS)
+            let absolute_path = sysfs_dir.path().join(PATH);
+            fs::write(absolute_path, CONTENTS)
                 .expect("parent directory should exist and be writable");
-            assert!(read(attribute_path)
+            assert!(read(PATH)
                 .is_ok_and(|attribute_contents| attribute_contents == CONTENTS.as_bytes()));
         }
     }
@@ -70,11 +70,12 @@ mod tests {
         #[test]
         fn it_should_read_from_an_attribute() {
             let sysfs_dir = mock_sysfs_dir();
-            let attribute_path = sysfs_dir.path().join(PATH);
-            fs::write(&attribute_path, CONTENTS)
+            let absolute_path = sysfs_dir.path().join(PATH);
+            fs::write(absolute_path, CONTENTS)
                 .expect("parent directory should exist and be writable");
-            assert!(read_to_string(attribute_path)
-                .is_ok_and(|attribute_contents| attribute_contents == CONTENTS));
+            assert!(
+                read_to_string(PATH).is_ok_and(|attribute_contents| attribute_contents == CONTENTS)
+            );
         }
     }
 
@@ -84,9 +85,9 @@ mod tests {
         #[test]
         fn it_should_write_to_an_attribute() {
             let sysfs_dir = mock_sysfs_dir();
-            let attribute_path = sysfs_dir.path().join(PATH);
             write(PATH, CONTENTS).expect("attribute should be writable");
-            assert!(fs::read_to_string(attribute_path)
+            let absolute_path = sysfs_dir.path().join(PATH);
+            assert!(fs::read_to_string(absolute_path)
                 .is_ok_and(|attribute_contents| attribute_contents == CONTENTS));
         }
     }
