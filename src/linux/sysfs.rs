@@ -4,9 +4,7 @@
 use std::cell::OnceCell;
 use std::fs;
 use std::io::Result;
-use std::path::Path;
-#[cfg(test)]
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 /// Interface for reading and writing to kernel attributes using paths that are
 /// relative to the sysfs root directory.
@@ -14,24 +12,24 @@ pub struct Sysfs;
 
 impl Sysfs {
     /// Read from a kernel attribute.
-    pub fn read(path: impl AsRef<Path>) -> Result<Vec<u8>> {
-        let path = Self::get_sysfs_path(path);
+    pub fn read(&self, path: impl AsRef<Path>) -> Result<Vec<u8>> {
+        let path = self.get_sysfs_path(path);
         fs::read(path)
     }
 
     /// Read from a kernel attribute into a [`String`].
-    pub fn read_to_string(path: impl AsRef<Path>) -> Result<String> {
-        let path = Self::get_sysfs_path(path);
+    pub fn read_to_string(&self, path: impl AsRef<Path>) -> Result<String> {
+        let path = self.get_sysfs_path(path);
         fs::read_to_string(path)
     }
 
     /// Write to a kernel attribute.
-    pub fn write(path: impl AsRef<Path>, contents: impl AsRef<[u8]>) -> Result<()> {
-        let path = Self::get_sysfs_path(path);
+    pub fn write(&self, path: impl AsRef<Path>, contents: impl AsRef<[u8]>) -> Result<()> {
+        let path = self.get_sysfs_path(path);
         fs::write(path, contents)
     }
 
-    fn get_sysfs_path(attribute_path: impl AsRef<Path>) -> PathBuf {
+    fn get_sysfs_path(&self, attribute_path: impl AsRef<Path>) -> PathBuf {
         #[cfg(not(test))]
         Path::new(Self::SYSFS_ROOT_DIR).join(path);
 
@@ -60,35 +58,42 @@ mod tests {
     #[test]
     fn it_should_read_from_an_attribute() {
         let _sysfs_dir = mock_sysfs_dir();
-        assert!(Sysfs::read("class/pwm/pwmchip0/npwm")
+        let sysfs = Sysfs;
+        assert!(sysfs
+            .read("class/pwm/pwmchip0/npwm")
             .is_ok_and(|contents| contents == NPWM.as_bytes()));
     }
 
     #[test]
     fn it_should_return_an_error_when_reading_from_a_device_that_does_not_exist() {
         let _sysfs_dir = mock_sysfs_dir();
-        assert!(Sysfs::read("class/pwm/pwmchip1/npwm").is_err());
+        let sysfs = Sysfs;
+        assert!(sysfs.read("class/pwm/pwmchip1/npwm").is_err());
     }
 
     #[test]
     fn it_should_read_from_an_attribute_to_a_string() {
         let _sysfs_dir = mock_sysfs_dir();
-        assert!(
-            Sysfs::read_to_string("class/pwm/pwmchip0/npwm").is_ok_and(|contents| contents == NPWM)
-        );
+        let sysfs = Sysfs;
+        assert!(sysfs
+            .read_to_string("class/pwm/pwmchip0/npwm")
+            .is_ok_and(|contents| contents == NPWM));
     }
 
     #[test]
     fn it_should_return_an_error_when_reading_to_a_string_from_a_device_that_does_not_exist() {
         let _sysfs_dir = mock_sysfs_dir();
-        assert!(Sysfs::read_to_string("class/pwm/pwmchip1/npwm").is_err());
+        let sysfs = Sysfs;
+        assert!(sysfs.read_to_string("class/pwm/pwmchip1/npwm").is_err());
     }
 
     #[test]
     fn it_should_write_to_an_attribute() {
         let sysfs_dir = mock_sysfs_dir();
+        let sysfs = Sysfs;
         let channel = "0";
-        Sysfs::write("class/pwm/pwmchip0/export", channel)
+        sysfs
+            .write("class/pwm/pwmchip0/export", channel)
             .expect("attribute should exist and be writable");
         let path = sysfs_dir.path().join("class/pwm/pwmchip0/export");
         assert!(fs::read_to_string(path).is_ok_and(|contents| contents == channel));
@@ -97,7 +102,8 @@ mod tests {
     #[test]
     fn it_should_return_an_error_when_writing_to_an_attribute_for_a_device_that_does_not_exist() {
         let _sysfs_dir = mock_sysfs_dir();
-        assert!(Sysfs::write("class/pwm/pwmchip1/export", "0").is_err());
+        let sysfs = Sysfs;
+        assert!(sysfs.write("class/pwm/pwmchip1/export", "0").is_err());
     }
 
     fn mock_sysfs_dir() -> TemporaryDirectory {
