@@ -39,8 +39,11 @@ fn get_sysfs_path(attribute_path: impl AsRef<Path>) -> PathBuf {
 
 #[cfg(not(test))]
 const SYSFS_ROOT_DIR: &str = "/sys";
+
 #[cfg(test)]
-thread_local!(static SYSFS_ROOT_DIR: OnceCell<PathBuf> = OnceCell::new());
+thread_local! {
+    static SYSFS_ROOT_DIR: OnceCell<PathBuf> = const { OnceCell::new() };
+}
 
 #[cfg(test)]
 mod tests {
