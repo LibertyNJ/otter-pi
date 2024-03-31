@@ -13,6 +13,12 @@ pub fn read(path: impl AsRef<Path>) -> io::Result<Vec<u8>> {
     fs::read(path)
 }
 
+/// Read from a kernel attribute into a [`String`].
+pub fn read_to_string(path: impl AsRef<Path>) -> io::Result<String> {
+    let path = get_sysfs_path(path);
+    fs::read_to_string(path)
+}
+
 /// Write to a kernel attribute.
 pub fn write(path: impl AsRef<Path>, contents: impl AsRef<[u8]>) -> io::Result<()> {
     let path = get_sysfs_path(path);
@@ -44,19 +50,6 @@ mod tests {
     const CONTENTS: &str = "bar";
     const PATH: &str = "foo";
 
-    mod write {
-        use super::*;
-
-        #[test]
-        fn it_should_write_to_an_attribute() {
-            let sysfs_dir = mock_sysfs_dir();
-            let attribute_path = sysfs_dir.path().join(PATH);
-            write(PATH, CONTENTS).expect("attribute should be writable");
-            assert!(fs::read_to_string(attribute_path)
-                .is_ok_and(|attribute_contents| attribute_contents == CONTENTS),);
-        }
-    }
-
     mod read {
         use super::*;
 
@@ -68,6 +61,33 @@ mod tests {
                 .expect("parent directory should exist and be writable");
             assert!(read(attribute_path)
                 .is_ok_and(|attribute_contents| attribute_contents == CONTENTS.as_bytes()));
+        }
+    }
+
+    mod read_to_string {
+        use super::*;
+
+        #[test]
+        fn it_should_read_from_an_attribute() {
+            let sysfs_dir = mock_sysfs_dir();
+            let attribute_path = sysfs_dir.path().join(PATH);
+            fs::write(&attribute_path, CONTENTS)
+                .expect("parent directory should exist and be writable");
+            assert!(read_to_string(attribute_path)
+                .is_ok_and(|attribute_contents| attribute_contents == CONTENTS));
+        }
+    }
+
+    mod write {
+        use super::*;
+
+        #[test]
+        fn it_should_write_to_an_attribute() {
+            let sysfs_dir = mock_sysfs_dir();
+            let attribute_path = sysfs_dir.path().join(PATH);
+            write(PATH, CONTENTS).expect("attribute should be writable");
+            assert!(fs::read_to_string(attribute_path)
+                .is_ok_and(|attribute_contents| attribute_contents == CONTENTS));
         }
     }
 
