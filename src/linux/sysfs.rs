@@ -11,6 +11,11 @@ use std::path::{Path, PathBuf};
 pub struct Sysfs;
 
 impl Sysfs {
+    /// Creates a new `Sysfs` interface.
+    pub fn new() -> Self {
+        Self
+    }
+
     /// Read from a kernel attribute.
     pub fn read(&self, path: impl AsRef<Path>) -> Result<Vec<u8>> {
         let path = self.get_sysfs_path(path);
@@ -58,7 +63,7 @@ mod tests {
     #[test]
     fn it_should_read_from_an_attribute() {
         let _sysfs_dir = mock_sysfs_dir();
-        let sysfs = Sysfs;
+        let sysfs = Sysfs::new();
         assert!(sysfs
             .read("class/pwm/pwmchip0/npwm")
             .is_ok_and(|contents| contents == NPWM.as_bytes()));
@@ -67,14 +72,14 @@ mod tests {
     #[test]
     fn it_should_return_an_error_when_reading_from_a_device_that_does_not_exist() {
         let _sysfs_dir = mock_sysfs_dir();
-        let sysfs = Sysfs;
+        let sysfs = Sysfs::new();
         assert!(sysfs.read("class/pwm/pwmchip1/npwm").is_err());
     }
 
     #[test]
     fn it_should_read_from_an_attribute_to_a_string() {
         let _sysfs_dir = mock_sysfs_dir();
-        let sysfs = Sysfs;
+        let sysfs = Sysfs::new();
         assert!(sysfs
             .read_to_string("class/pwm/pwmchip0/npwm")
             .is_ok_and(|contents| contents == NPWM));
@@ -83,14 +88,14 @@ mod tests {
     #[test]
     fn it_should_return_an_error_when_reading_to_a_string_from_a_device_that_does_not_exist() {
         let _sysfs_dir = mock_sysfs_dir();
-        let sysfs = Sysfs;
+        let sysfs = Sysfs::new();
         assert!(sysfs.read_to_string("class/pwm/pwmchip1/npwm").is_err());
     }
 
     #[test]
     fn it_should_write_to_an_attribute() {
         let sysfs_dir = mock_sysfs_dir();
-        let sysfs = Sysfs;
+        let sysfs = Sysfs::new();
         let channel = "0";
         sysfs
             .write("class/pwm/pwmchip0/export", channel)
@@ -102,7 +107,7 @@ mod tests {
     #[test]
     fn it_should_return_an_error_when_writing_to_an_attribute_for_a_device_that_does_not_exist() {
         let _sysfs_dir = mock_sysfs_dir();
-        let sysfs = Sysfs;
+        let sysfs = Sysfs::new();
         assert!(sysfs.write("class/pwm/pwmchip1/export", "0").is_err());
     }
 
