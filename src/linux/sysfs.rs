@@ -54,9 +54,21 @@ mod tests {
     }
 
     #[test]
+    fn it_should_return_an_error_when_reading_from_a_device_that_does_not_exist() {
+        let _sysfs_dir = mock_sysfs_dir();
+        assert!(read("class/pwm/pwmchip1/npwm").is_err());
+    }
+
+    #[test]
     fn it_should_read_from_an_attribute_to_a_string() {
         let _sysfs_dir = mock_sysfs_dir();
         assert!(read_to_string("class/pwm/pwmchip0/npwm").is_ok_and(|contents| contents == NPWM));
+    }
+
+    #[test]
+    fn it_should_return_an_error_when_reading_to_a_string_from_a_device_that_does_not_exist() {
+        let _sysfs_dir = mock_sysfs_dir();
+        assert!(read_to_string("class/pwm/pwmchip1/npwm").is_err());
     }
 
     #[test]
@@ -67,6 +79,12 @@ mod tests {
             .expect("attribute should exist and be writable");
         let path = sysfs_dir.path().join("class/pwm/pwmchip0/export");
         assert!(fs::read_to_string(path).is_ok_and(|contents| contents == channel));
+    }
+
+    #[test]
+    fn it_should_return_an_error_when_writing_to_an_attribute_for_a_device_that_does_not_exist() {
+        let _sysfs_dir = mock_sysfs_dir();
+        assert!(write("class/pwm/pwmchip1/export", "0").is_err());
     }
 
     fn mock_sysfs_dir() -> TemporaryDirectory {
