@@ -28,19 +28,19 @@ impl<'a> Sysfs<'a> {
         }
     }
 
-    /// Read from a kernel attribute.
+    /// Reads from a kernel attribute.
     pub fn read(&self, path: impl AsRef<Path>) -> Result<Vec<u8>> {
         let path_ref = self.resolve_path(path);
         fs::read(path_ref.as_path())
     }
 
-    /// Read from a kernel attribute into a [`String`].
+    /// Reads from a kernel attribute into a [`String`].
     pub fn read_to_string(&self, path: impl AsRef<Path>) -> Result<String> {
         let path_ref = self.resolve_path(path);
         fs::read_to_string(path_ref.as_path())
     }
 
-    /// Write to a kernel attribute.
+    /// Writes to a kernel attribute.
     pub fn write(&self, path: impl AsRef<Path>, contents: impl AsRef<[u8]>) -> Result<()> {
         let path_ref = self.resolve_path(path);
         fs::write(path_ref.as_path(), contents)
